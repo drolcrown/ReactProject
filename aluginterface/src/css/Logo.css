@@ -1,0 +1,18 @@
+.animationLogo {
+    animation: animationLogo-spin infinite 20s linear;
+    height: 80px;
+}
+
+.logo {
+    /* background-color: #222; */
+    background-color: #222;
+    height: 150px;
+    padding: 10px;
+    color: white;
+    border: 2px solid #222222;
+}
+
+@keyframes animationLogo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

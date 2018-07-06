@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.title {
+  font-size: 1.5em;
+}
+
+.boxShadow {
+  display: table;
+  width: 50%;
+  margin: auto;
+  margin-top: 5%;
+  border: 1px solid #008B8B;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 5px 10px #222222;
+  background: #008B8B;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.link {
+  text-decoration: none;
+  color: #ffffff;
+}
