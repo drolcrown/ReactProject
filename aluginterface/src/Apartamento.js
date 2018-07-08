@@ -4,7 +4,7 @@ import './css/Apartamento.css';
 import axios from 'axios';
 import { Card, CardImg, CardBody, CardTitle, CardSubtitle, 
         Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import LogoImg from './logo.svg';
+import LogoImg from './img/logo.svg';
 
 class Apartamento extends Component {
     constructor() {
@@ -12,15 +12,18 @@ class Apartamento extends Component {
         this.state = { preco: '', local: '', descricao: '',
             nome: '', apartamentos: [], modal: false, 
             precoModal: '', localModal: '', descricaoModal: '',
-            nomeModal: '', imgModal: '',
+            nomeModal: '', imgModal: '', apartamentoListaBackup: [],
+            noItem: {display: 'none'},
         };
         this.toggle = this.toggle.bind(this);
+        this.verificarInputs = this.verificarInputs.bind(this);
+        this.postarNoBanco = this.postarNoBanco.bind(this);
     }
 
     //Executado quando o componente é renderizado
     async componentDidMount(){
         const resposta = await axios.get('http://localhost:3333/apartamento/todos');
-        this.setState({ apartamentos: resposta.data});
+        this.setState({ apartamentos: resposta.data, apartamentoListaBackup: resposta.data});
     }
 
     toggle = async (e) => {
@@ -39,19 +42,41 @@ class Apartamento extends Component {
 
     enviarResposta = async (e) =>{
         e.preventDefault();
+        this.postarNoBanco(true);
+    }
 
-        if (!this.state.preco && !this.state.local 
-            && !this.state.descricao && !this.state.nome) {
+    postarNoBanco = async (enviarResposta) => {
+        const url = 'http://localhost:3333/apartamento/buscar';
+        if (!this.state.preco && !this.state.local && !this.state.descricao && !this.state.nome) {
+            this.setState({ apartamentos: this.state.apartamentoListaBackup});
             console.log("Sem nada");
             return;
         }
-        const resposta = await axios.post('http://localhost:3333/apartamento/buscar', {
-            preco: this.state.preco,
-            nome: this.state.nome,
-            local: this.state.local,
-            descricao: this.state.descricao,
-        })
-        console.log(resposta.data);
+        const resposta = ((await axios.post(url, {
+            $or : [
+                {$or : [{preco: {$lte : this.state.preco}}]},
+                {$or : [{nome : this.state.nome}]},
+                {$or : [{local : this.state.local}]},
+                {$or : [{descricao : this.state.descricao}]}
+            ]
+        })).data);
+        if (resposta.length > 0) {
+            this.setState({ apartamentos: resposta});
+            this.setState({noItem: {display: 'none'}});
+        }else{
+            if(enviarResposta) {
+                this.setState({ apartamentos: []});
+                this.setState({noItem: {display: 'flex'}});
+            }else{
+                this.setState({ apartamentos: this.state.apartamentoListaBackup});
+            }
+        }
+    }
+
+    verificarInputs(valor){
+        if(valor === ''){
+            this.postarNoBanco(false);
+        }
     }
 
     render() {
@@ -63,7 +88,7 @@ class Apartamento extends Component {
             <div>
                 <Logo/>
                 <div className="Apartamento">
-                    <form className="row col-4 col-sm-4 text-center" onSubmit={this.enviarResposta}>
+                    <form className="row col-4 col-sm-4 text-center" onSubmit={this.enviarResposta} onChange={e => {this.verificarInputs(e.target.value)}}>
                         <div className="justify-content-center Apartamento-flex">
                             <input className="Apartamento-input col-8" type="number" name="preco" value={this.state.preco} 
                                 onChange={e => this.setState({preco: e.target.value})} placeholder="Preço"/>
@@ -104,10 +129,13 @@ class Apartamento extends Component {
                                     <ModalFooter>
                                         <Button color="primary" onClick={this.toggle}>Negociar</Button>
                                     </ModalFooter>
-                                </Modal>
+                                </Modal>    
                             </div>                                 
                         ))}
-                    </div> 
+                        <div style={this.state.noItem} className="center">
+                            <h1>Nenhum Item Encontrado!!</h1>
+                        </div>  
+                    </div>                      
                 </div> 
             </div>
         );
